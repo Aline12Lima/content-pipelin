@@ -3,7 +3,7 @@
 Pipeline automatizado de análise e governança de conteúdo textual utilizando arquitetura de microsserviços com Docker, orquestração via n8n e modelos de NLP do Hugging Face.
 
 ## Arquitetura
-
+![Diagrama do Pipeline](public/n8n_pipeline.png)
 POST /webhook/analyze
 
 │
