@@ -53,6 +53,66 @@
       ],
       "id": "43c7ab16-7b38-4ef4-9b8c-54e8f03736a7",
       "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/facebook/bart-large-xsum",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": " Bearer {{HUGGINGFACE_API_TOKEN}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "inputs",
+              "value": "=={{ $('Webhook').item.json.body.texto }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "1e4b0414-d435-4d4b-8406-970eb7151433",
+      "name": "Summarization"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO analyses (texto, sentimento, confianca, resumo)\nVALUES (\n  $1, $2, $3::decimal, $4\n)",
+        "options": {
+          "queryReplacement": "=={{ $('Webhook').item.json.body.texto }},{{ $('HTTP Request').item.json[0].label }},{{ $('HTTP Request').item.json[0].score }},{{ $('Summarization').item.json.summary_text }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        592,
+        0
+      ],
+      "id": "0b3d049f-c8e2-45bb-96e8-71ceea60a0c1",
+      "name": "Save to Database",
+      "credentials": {
+        "postgres": {
+          "id": "EPpmyX5zTRSwxLID",
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -67,6 +127,28 @@
           }
         ]
       ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Summarization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarization": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -75,8 +157,9 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "313c8399-766f-4068-bfc9-bd3e4b2f8e14",
+  "versionId": "74a986b2-9e0b-47ea-8294-f4dd1dfb2a9b",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "460886a9fa1c90b6fbf46e75595e14e4692493f3559d055ae973354dbac73e9b"
   },
   "nodeGroups": [],
