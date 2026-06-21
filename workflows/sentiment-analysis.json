@@ -5,13 +5,14 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "analyze",
+        "responseMode": "responseNode",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        0
+        256,
+        -224
       ],
       "id": "8aeae849-9b39-4b8a-a842-4c964aeffad9",
       "name": "Webhook",
@@ -48,8 +49,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        208,
-        0
+        224,
+        16
       ],
       "id": "43c7ab16-7b38-4ef4-9b8c-54e8f03736a7",
       "name": "HTTP Request"
@@ -86,7 +87,7 @@
       "typeVersion": 4.4,
       "position": [
         416,
-        0
+        16
       ],
       "id": "1e4b0414-d435-4d4b-8406-970eb7151433",
       "name": "Summarization"
@@ -102,8 +103,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        592,
-        0
+        608,
+        16
       ],
       "id": "0b3d049f-c8e2-45bb-96e8-71ceea60a0c1",
       "name": "Save to Database",
@@ -113,6 +114,32 @@
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sentimentoData = $('HTTP Request').all()[0].json;\nconst resumo = $('Summarization').all()[0].json.summary_text;\nconst textoOriginal = $('Webhook').all()[0].json.body.texto;\n\nconst scores = Array.isArray(sentimentoData) ? sentimentoData : [sentimentoData];\n\nconst melhorSentimento = scores.reduce((prev, current) => \n  prev.score > current.score ? prev : current\n);\n\nreturn [{\n  json: {\n    sucesso: true,\n    dados: {\n      texto_original: textoOriginal,\n      sentimento: melhorSentimento.label,\n      confianca: parseFloat(melhorSentimento.score.toFixed(4)),\n      resumo: resumo,\n      processado_em: new Date().toISOString()\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        16
+      ],
+      "id": "bd64b956-a8b0-4425-bc44-46cc9f7b2ecd",
+      "name": "Format Response"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1040,
+        16
+      ],
+      "id": "dd6f6bc1-b909-4968-b8f2-cce8cf5bc776",
+      "name": "Respond to Webhook"
     }
   ],
   "pinData": {},
@@ -149,15 +176,37 @@
           }
         ]
       ]
+    },
+    "Save to Database": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "74a986b2-9e0b-47ea-8294-f4dd1dfb2a9b",
+  "versionId": "61ed1b45-b09d-4578-9d7f-1462f38735ff",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "460886a9fa1c90b6fbf46e75595e14e4692493f3559d055ae973354dbac73e9b"
